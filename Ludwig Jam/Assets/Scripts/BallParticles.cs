@@ -9,11 +9,8 @@ public class BallParticles : MonoBehaviour
 	private void Awake()
 	{
 		grass.Play();
-		grass.Clear();
-		dust.Clear();
 		dust.Play();
 		brownGrass.Play();
-		brownGrass.Clear();
 	}
 
 	public void SetParticles(float speed, string ground)

@@ -53,4 +53,11 @@ public class EventHandler : MonoBehaviour
 		if (e_Play != null)
 			e_Play();
 	}
+
+	public event Action e_Stake;
+	public void Stake()
+	{
+		if (e_Stake != null)
+			e_Stake();
+	}
 }

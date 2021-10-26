@@ -734,7 +734,7 @@ GameObject:
   - component: {fileID: 3161336579883058446}
   m_Layer: 0
   m_Name: Stake
-  m_TagString: Untagged
+  m_TagString: Stone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -850,6 +850,7 @@ MonoBehaviour:
   brutalNumber: {fileID: 939688285859335329}
   flag: {fileID: 853858683018339790}
   winningStake: 0
+  tutorialStake: 0
 --- !u!1 &8641649816551302204
 GameObject:
   m_ObjectHideFlags: 0

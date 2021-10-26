@@ -5,6 +5,7 @@ using UnityEngine;
 public class StakeTrigger : MonoBehaviour
 {
     private bool dead;
+	private int shotsAtStake;
 	public static bool brutal;
 	[SerializeField] int shots = 6;
 	[SerializeField] int brutalShots = 1;
@@ -12,6 +13,7 @@ public class StakeTrigger : MonoBehaviour
 	[SerializeField] Transform number, brutalNumber;
 	[SerializeField] GameObject flag;
 	[SerializeField] bool winningStake;
+	[SerializeField] bool tutorialStake;
 	private Vector3 numberOrigin;
 	private float numberRiseSpeed = 0.2f;
 
@@ -29,7 +31,7 @@ public class StakeTrigger : MonoBehaviour
 
 	private void OnTriggerEnter(Collider other)
 	{
-		if (!dead && other.gameObject.layer == LayerMask.NameToLayer("Balls"))
+		if (other.gameObject.layer == LayerMask.NameToLayer("Balls"))
 		{
 			if (winningStake)
 			{
@@ -38,22 +40,32 @@ public class StakeTrigger : MonoBehaviour
 			}
 			else
 			{
-				if (brutal)
+				BallPhysics ball = other.GetComponent<BallPhysics>();
+				if (dead && ball.shots < shotsAtStake)
 				{
-					other.GetComponent<BallPhysics>().AddShots(brutalShots);
-					StartCoroutine("c_ShowBrutalNumber", 1);
+					ball.SetShots(shotsAtStake);
 					AudioManager.instance.Play("wicketCollect");
 				}
-				else
+				else if (!dead)
 				{
-					other.GetComponent<BallPhysics>().AddShots(shots);
-					StartCoroutine("c_ShowNumber", 1);
-					AudioManager.instance.Play("stakeCollect");
-				}
-				
-				dead = true;
-				
-				flag.SetActive(true);
+					if (brutal)
+					{
+						ball.AddShots(brutalShots);
+						StartCoroutine("c_ShowBrutalNumber", 1);
+						AudioManager.instance.Play("wicketCollect");
+					}
+					else
+					{
+						ball.AddShots(shots);
+						StartCoroutine("c_ShowNumber", 1);
+						AudioManager.instance.Play("stakeCollect");
+					}
+					shotsAtStake = ball.shots;
+					dead = true;
+					flag.SetActive(true);
+					if (tutorialStake)
+						EventHandler.instance.Stake();
+				}	
 			}
 		}
 	}

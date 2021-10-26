@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8306556082482228329}
   m_Layer: 0
   m_Name: Left leg
-  m_TagString: Untagged
+  m_TagString: Stone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -306,7 +306,7 @@ GameObject:
   - component: {fileID: 3233095479487758921}
   m_Layer: 0
   m_Name: Head
-  m_TagString: Untagged
+  m_TagString: Stone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -428,7 +428,7 @@ GameObject:
   - component: {fileID: 4218510970389596541}
   m_Layer: 0
   m_Name: Right leg
-  m_TagString: Untagged
+  m_TagString: Stone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
