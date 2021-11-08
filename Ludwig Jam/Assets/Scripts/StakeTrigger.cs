@@ -19,7 +19,9 @@ public class StakeTrigger : MonoBehaviour
 
 	private void Awake()
 	{
+		flag.SetActive(true);
 		EventHandler.instance.e_Restart += ListenRestart;
+		EventHandler.instance.e_RNG += ListenRestart;
 
 		number.rotation = Quaternion.identity;
 		number.Rotate(Vector3.up, 180);
@@ -36,17 +38,12 @@ public class StakeTrigger : MonoBehaviour
 			if (winningStake)
 			{
 				EventHandler.instance.Win();
-				flag.SetActive(true);
+				flag.SetActive(false);
 			}
 			else
 			{
 				BallPhysics ball = other.GetComponent<BallPhysics>();
-				if (dead && ball.shots < shotsAtStake)
-				{
-					ball.SetShots(shotsAtStake);
-					AudioManager.instance.Play("wicketCollect");
-				}
-				else if (!dead)
+				if (!dead)
 				{
 					if (brutal)
 					{
@@ -62,9 +59,11 @@ public class StakeTrigger : MonoBehaviour
 					}
 					shotsAtStake = ball.shots;
 					dead = true;
-					flag.SetActive(true);
+					flag.SetActive(false);
+					/*
 					if (tutorialStake)
 						EventHandler.instance.Stake();
+					*/
 				}	
 			}
 		}
@@ -73,7 +72,7 @@ public class StakeTrigger : MonoBehaviour
 	public void ListenRestart()
 	{
 		dead = false;
-		flag.SetActive(false);
+		flag.SetActive(true);
 	}
 
 	private IEnumerator c_ShowNumber(float duration)

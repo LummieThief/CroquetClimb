@@ -43,6 +43,7 @@ public class BallPhysics : MonoBehaviour
 
     [SerializeField] BallParticles particles;
 
+	private float stoppedRollingTimer = -1;
     
     
     void Awake()
@@ -163,22 +164,41 @@ public class BallPhysics : MonoBehaviour
 				OnStartedRolling();
 
 			Vector3 frictionForce = rb.velocity.normalized * -1 * currentFriction;
-            if (!onSlope)
+			if (!onSlope)
 			{
-                rb.AddForce(frictionForce);
-            }
-			
+				rb.AddForce(frictionForce);
+			}
+
 
 			rb.angularVelocity = new Vector3(rb.angularVelocity.x, 0, rb.angularVelocity.z);
 			transform.RotateAround(transform.position, Vector3.Cross(Vector3.up, rb.velocity), rotationFactor * rb.velocity.magnitude);
+
+			stoppedRollingTimer = -1;
 		}
 		// If the ball is not rolling and is still flagged as rolling
-		else if (rolling && !onSlope && !ballHit)
+		else if (rolling && !ballHit)
 		{
-			float mag = Mathf.Abs(rb.velocity.magnitude);
+			if (stoppedRollingTimer < 0)
+			{
+				stoppedRollingTimer = 0;
+			}
+			if (onSlope && stoppedRollingTimer < 0.5f)
+			{
+				stoppedRollingTimer += Time.deltaTime;
+			}
+			else
+			{
+				stoppedRollingTimer = -1;
+				float mag = Mathf.Abs(rb.velocity.magnitude);
+				rb.velocity = Vector3.zero;
+				rb.angularVelocity = Vector3.zero;
+				OnStoppedRolling(mag);
+			}
+			
+		}
+		else
+		{
 			rb.velocity = Vector3.zero;
-			rb.angularVelocity = Vector3.zero;
-			OnStoppedRolling(mag);
 		}
        
     }
@@ -188,6 +208,7 @@ public class BallPhysics : MonoBehaviour
 	{
         rolling = true;
         grassRussle.UnPause();
+		stoppedRollingTimer = -1;
     }
 
     // Called when the ball stops rolling

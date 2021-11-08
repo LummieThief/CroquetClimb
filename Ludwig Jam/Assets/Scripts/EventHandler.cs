@@ -60,4 +60,11 @@ public class EventHandler : MonoBehaviour
 		if (e_Stake != null)
 			e_Stake();
 	}
+
+	public event Action e_RNG;
+	public void RNG()
+	{
+		if (e_RNG != null)
+			e_RNG();
+	}
 }

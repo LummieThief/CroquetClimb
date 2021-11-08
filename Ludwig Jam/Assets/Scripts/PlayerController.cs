@@ -13,9 +13,19 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] float dragSensitivity;
 	[SerializeField] float maxHitForce;
 	[SerializeField] float minHitForce;
+	[SerializeField] float rotationSpeed;
 	
 	[SerializeField] IndicatorArrow arrow;
 	[SerializeField] MalletController mallet;
+
+	[SerializeField] Transform number;
+	private Vector3 numberOffset = Vector3.up;
+	private float numberRiseSpeed = 0.2f;
+
+	private AudioSource spin;
+
+	private bool rngHit;
+
 
 	private bool dragging;
 
@@ -28,6 +38,8 @@ public class PlayerController : MonoBehaviour
 		SetupSingleton();
 		originalPosition = transform.position;
 		ball = GetComponent<BallPhysics>();
+
+		EventHandler.instance.e_Restart += ListenRestart;
 	}
 
 	void SetupSingleton()
@@ -39,16 +51,22 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{
-		DragHitLoop();
+		if (Winners.won || PauseMenu.paused)
+		{
+			return;
+		}
+		else if (ball.shots > 0)
+		{
+			DragHitLoop();
+		}
+		else
+		{
+			OutOfShotsLoop();
+		}
 	}
 
 	private void DragHitLoop()
 	{
-		if (ball.shots <= 0 || Winners.won || PauseMenu.paused)
-		{
-			return;
-		}
-
 		if (Input.GetKeyDown(KeyCode.Mouse0))
 		{
 			OnDragStart();
@@ -61,7 +79,6 @@ public class PlayerController : MonoBehaviour
 
 		if (dragging)
 		{
-			
 			Vector2 mouseMovement = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
 			mouseDisplacement -= mouseMovement;
 
@@ -79,34 +96,85 @@ public class PlayerController : MonoBehaviour
 					}
 					return;
 				}
-				
+
 			}
 
 			if (mouseDisplacement.magnitude > dragSensitivity)
 			{
 				mouseDisplacement = mouseDisplacement.normalized * dragSensitivity;
 			}
-			
+
 			Vector3 mouseDisplacement3d = new Vector3(mouseDisplacement.x, 0, mouseDisplacement.y);
-			if (shots > 0)
-			{
-				arrow.Point(ball.transform.position, ball.transform.position + mouseDisplacement3d / dragSensitivity * arrow.GetMaxLength());
-				mallet.SetSwingState(mouseDisplacement3d.magnitude / dragSensitivity, mouseDisplacement3d);
-			}
+
+			arrow.Point(ball.transform.position, ball.transform.position + mouseDisplacement3d / dragSensitivity * arrow.GetMaxLength());
+			mallet.SetSwingState(mouseDisplacement3d.magnitude / dragSensitivity, mouseDisplacement3d);
+
 			if (Input.GetKeyUp(KeyCode.Mouse0))
 			{
-				if (shots > 0)
-				{
-					OnHit();
-				}
+				OnHit();
 				OnDragStop();
 			}
+		}
+
+		if (rngHit && !ball.rolling)
+		{
+			rngHit = false;
+			StartCoroutine("c_ShowNumber", 1);
+			AudioManager.instance.Play("wicketCollect");
+			ball.AddShots(2);
+			return;
+		}
+	}
+
+	private void OutOfShotsLoop()
+	{
+		if (spin == null)
+		{
+			spin = AudioManager.instance.GetSource("spin");
+		}
+		if (rngHit && !ball.rolling)
+		{
+			rngHit = false;
+			StartCoroutine("c_ShowNumber", 1);
+			AudioManager.instance.Play("wicketCollect");
+			ball.AddShots(2);
+			return;
+		}
+		else if (ball.rolling) 
+		{
+			if (spin.isPlaying)
+			{
+				spin.Stop();
+			}
+			return; 
+		}
+
+		if (!spin.isPlaying) 
+		{
+			spin.Play();
+			EventHandler.instance.RNG();
+		}
+
+		OnDragStart();
+		Vector3 endPoint = ball.transform.position + new Vector3(1, 0, 0) * arrow.GetMaxLength();
+		endPoint = RotatePointAroundPivot(endPoint, ball.transform.position, Vector3.up * ((Time.time * rotationSpeed) % 360));
+		arrow.Point(ball.transform.position, endPoint);
+		mallet.SetSwingState(1, endPoint - ball.transform.position);
+
+		if (Input.GetKeyDown(KeyCode.Mouse0))
+		{
+			OnHit();
+			rngHit = true;
+			ball.AddShots(1);
+			OnDragStop();
 		}
 	}
 
 	// called when the player starts dragging
 	private void OnDragStart()
 	{
+		if (dragging)
+			return;
 		mouseDisplacement = Vector2.zero;
 		dragging = true;
 		RefreshArrow();
@@ -115,6 +183,8 @@ public class PlayerController : MonoBehaviour
 	// called when the player stops dragging
 	private void OnDragStop()
 	{
+		if (!dragging)
+			return;
 		dragging = false;
 		arrow.SetVisible(false);
 		if (!mallet.swung)
@@ -147,5 +217,33 @@ public class PlayerController : MonoBehaviour
 			arrow.SetVisible(true);
 		}
 		
+	}
+
+	private Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Vector3 angles)
+	{
+		return Quaternion.Euler(angles) * (point - pivot) + pivot;
+	}
+
+	public void ListenRestart()
+	{
+		rngHit = false;
+	}
+
+	private IEnumerator c_ShowNumber(float duration)
+	{
+		number.position = ball.transform.position + numberOffset;
+		number.gameObject.SetActive(true);
+		float currentTime = 0;
+
+		while (currentTime < duration)
+		{
+			currentTime += Time.deltaTime;
+			number.Translate(Vector3.up * Time.deltaTime * numberRiseSpeed);
+			yield return null;
+		}
+		
+		number.gameObject.SetActive(false);
+
+		yield break;
 	}
 }

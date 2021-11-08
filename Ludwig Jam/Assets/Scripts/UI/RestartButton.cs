@@ -12,11 +12,9 @@ public class RestartButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     [SerializeField] GameObject restartText;
 
     private bool spinning;
-    private bool outOfShots;
 
     private float timer;
     private float timeBeforeRestart = 3f;
-    private float timeToDetermineBallIsStopped = 0.5f;
 
 	private void Awake()
 	{
@@ -36,7 +34,8 @@ public class RestartButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
 	private void Update()
 	{
-        if (BallPhysics.instance.shots <= 0 && (!BallPhysics.instance.rolling || WaterTrigger.sunk))
+		
+        if (WaterTrigger.sunk)
 		{
             timer += Time.deltaTime;
             spinning = true;
@@ -44,15 +43,10 @@ public class RestartButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             {
                 restartText.SetActive(true);
             }
-            else if (timer > timeToDetermineBallIsStopped)
-			{
-                outOfShots = true;
-            }
         }
-        else if (outOfShots)
+        else
 		{
             spinning = false;
-            outOfShots = false;
             restartText.SetActive(false);
             timer = 0;
 		}
@@ -67,7 +61,6 @@ public class RestartButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 	{
         spinning = false;
         timer = 0;
-        outOfShots = false;
         restartText.SetActive(false);
         transform.rotation = Quaternion.identity;
     }
